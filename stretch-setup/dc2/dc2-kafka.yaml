@@ -1,0 +1,93 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Kafka
+metadata:
+  name: kafka
+  namespace: dc2
+  annotations:
+    platform.confluent.io/broker-id-offset: '10'
+  labels:
+    ingress: 'allowed'
+spec:
+  configOverrides:
+    server:
+      - client.rack=dc2
+      - broker.rack=dc2
+      - replica.selector.class=org.apache.kafka.common.replica.RackAwareReplicaSelector
+      - confluent.license.topic.replication.factor=3
+  podTemplate:
+    labels:
+      version: '1.0.0'
+      ingress: 'allowed'
+  replicas: 3
+  oneReplicaPerNode: true
+  image:
+    application: confluentinc/cp-server:7.7.1
+    init: confluentinc/confluent-init-container:2.9.3
+  dependencies:
+    zookeeper:
+      # authentication:
+      #   jaasConfig:
+      #     secretRef: credential
+        # type: digest
+      endpoint: zk0-proxy.bridge:2181,zk1-proxy.bridge:2181,zk2-proxy.bridge:2181,zookeeper.dc2.svc.cluster.local:2181/mrc
+  license:
+    globalLicense: true
+  dataVolumeCapacity: 5Gi
+  metricReporter:
+    enabled: true
+  listeners:
+    replication:
+      # authentication:
+      #   jaasConfig:
+      #     secre tRef: credential
+      #   type: plain
+      tls:
+        enabled: false
+      externalAccess:
+        # type: staticForHostBasedRouting
+        # staticForHostBasedRouting:
+        #   domain: k8s.internal.schmitzi.net
+        #   brokerPrefix: kafka-dc2-
+        #   port: 443
+        type: staticForPortBasedRouting
+        staticForPortBasedRouting:
+          host: kafka-proxy.bridge
+          portOffset: 9082
+    external:
+      externalAccess:
+        type: staticForHostBasedRouting
+        staticForHostBasedRouting:
+          domain: k8s.internal.schmitzi.net
+          brokerPrefix: kafka-new-
+          port: 443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    platform.confluent.io/cr-name: kafka
+    platform.confluent.io/namespace: dc2
+    platform.confluent.io/type: kafka
+    prometheus.io/port: "7778"
+    prometheus.io/scrape: "true"
+  name: kafka-bootstrap
+  namespace: dc2 
+  labels:
+    confluent-platform: "true"
+    cr-name: kafka
+    type: kafka
+    ingress: 'allowed'
+spec:
+  ports:
+    - name: external
+      port: 9092
+      protocol: TCP
+      targetPort: 9092
+  selector:
+    app: kafka
+    clusterId: dc2 
+    confluent-platform: "true"
+    type: kafka
+  sessionAffinity: None
+  type: ClusterIP

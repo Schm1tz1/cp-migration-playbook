@@ -1,0 +1,23 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Zookeeper
+metadata:
+  name: zookeeper
+  namespace: dc2
+spec:
+  podTemplate:
+    labels:
+      version: '1.0.0'
+      ingress-group: zk2
+  replicas: 3
+  oneReplicaPerNode: true
+  image:
+    application: confluentinc/cp-zookeeper:7.7.1
+    init: confluentinc/confluent-init-container:2.9.3
+  license:
+    globalLicense: true
+  dataVolumeCapacity: 1Gi
+  logVolumeCapacity: 1Gi
+  configOverrides:
+    server:
+      - 4lw.commands.whitelist=*

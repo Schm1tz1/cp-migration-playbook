@@ -1,0 +1,76 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Kafka
+metadata:
+  name: kafka
+  namespace: dc1
+  labels:
+    ingress: 'allowed'
+spec:
+  configOverrides:
+    server:
+      - client.rack=dc1
+      - broker.rack=dc1
+      - replica.selector.class=org.apache.kafka.common.replica.RackAwareReplicaSelector
+      - confluent.license.topic.replication.factor=3
+  podTemplate:
+    labels:
+      version: '1.0.0'
+      ingress: 'allowed'
+  replicas: 3
+  oneReplicaPerNode: true
+  image:
+    application: confluentinc/cp-server:7.7.1
+    init: confluentinc/confluent-init-container:2.9.3
+  dependencies:
+    zookeeper:
+      # authentication:
+      #   jaasConfig:
+      #     secretRef: credential
+        # type: digest
+      endpoint: zookeeper.dc1.svc.cluster.local:2181,zookeeper.dc1.svc.cluster.local:2181/mrc
+      # This endpoint is to ensure we don't use the auto-generated kafka-namespace znode but mrc. Operator checks for >1 endpoints and uses
+      # the znode name after /<name>. In case we can ensure consistent naeming before/after migration, this workaround in not required.
+  license:
+    globalLicense: true
+  dataVolumeCapacity: 5Gi
+  metricReporter:
+    enabled: true
+  listeners:
+    external:
+      externalAccess:
+        type: staticForHostBasedRouting
+        staticForHostBasedRouting:
+          domain: k8s.internal.schmitzi.net
+          brokerPrefix: kafka
+          port: 443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    platform.confluent.io/cr-name: kafka
+    platform.confluent.io/namespace: dc1
+    platform.confluent.io/type: kafka
+    prometheus.io/port: "7778"
+    prometheus.io/scrape: "true"
+  name: kafka-bootstrap
+  namespace: dc1 
+  labels:
+    confluent-platform: "true"
+    cr-name: kafka
+    type: kafka
+    ingress: 'allowed'
+spec:
+  ports:
+    - name: external
+      port: 9092
+      protocol: TCP
+      targetPort: 9092
+  selector:
+    app: kafka
+    clusterId: dc1 
+    confluent-platform: "true"
+    type: kafka
+  sessionAffinity: None
+  type: ClusterIP

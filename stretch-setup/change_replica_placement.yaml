@@ -1,0 +1,160 @@
+apiVersion: v1 
+kind: ConfigMap 
+metadata:
+  name: replica-config
+  namespace: dc1
+data:
+  java-client.properties: | 
+    # Required connection configs for Kafka producer, consumer, and admin
+    bootstrap.servers=kafka:9071
+    # security.protocol=SSL,SASL_PLAINTEXT
+    # sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';
+    # sasl.mechanism=PLAIN
+  replica_shared.json: | 
+    {
+        "version": 1,
+        "replicas": [
+            {
+                "count": 3,
+                "constraints": {
+                    "rack": "dc1"
+                }
+            },
+            {
+                "count": 3,
+                "constraints": {
+                    "rack": "dc2"
+                }
+            }
+        ]
+    }
+  replica_to_dc2.json: | 
+    {
+        "version": 1,
+        "replicas": [
+            {
+                "count": 3,
+                "constraints": {
+                    "rack": "dc2"
+                }
+            }
+        ]
+    }
+  observers_in_dc2.json: | 
+    {
+        "version": 2,
+        "replicas": [
+            {
+                "count": 3,
+                "constraints": {
+                    "rack": "dc1"
+                }
+            }
+        ],
+        "observers": [
+            {
+                "count": 3,
+                "constraints": {
+                    "rack": "dc2"
+                }
+            }
+        ],
+        "observerPromotionPolicy":"under-min-isr"
+    }
+  move_replicas.sh: |
+    #!/bin/sh
+
+    if [ "$#" -ne 2 ]; then
+      echo "Usage: $0 <client.properties> <replica-placement.json>"
+      exit 1
+    fi
+
+    CLIENT_CONFIG=${1}
+    REPLICA_CONFIG=${2}
+    BOOTSTRAP_SERVERS=$(cat ${CLIENT_CONFIG} | grep  'bootstrap.servers' | cut -d '=' -f2)
+
+    get_topics() {
+      kafka-topics --bootstrap-server ${BOOTSTRAP_SERVERS} --command-config ${CLIENT_CONFIG} --list
+    }
+
+    apply_configs() {
+      TOPICS=${@}
+      for i in $TOPICS; do
+        echo -n "* ${i}: "
+        kafka-configs --bootstrap-server ${BOOTSTRAP_SERVERS} --command-config ${CLIENT_CONFIG} \
+          --entity-type topics --entity-name ${i} --alter \
+          --replica-placement ${REPLICA_CONFIG}
+      done
+    }
+
+    start_rebalancer() {
+      confluent-rebalancer execute --bootstrap-server ${BOOTSTRAP_SERVERS} \
+        --command-config ${CLIENT_CONFIG} --replica-placement-only \
+        --throttle 10000000 --force --verbose
+    }
+
+    wait_for_rebalancer() {
+      until confluent-rebalancer finish --bootstrap-server ${BOOTSTRAP_SERVERS} --command-config ${CLIENT_CONFIG}; do
+        echo "  $(date) Rebalance still in progress, retrying in 30s."
+        sleep 30
+      done
+    }
+
+    main() {
+      echo -e "Starting move process of replica placement with the following configurations: \n\t * Client: ${CLIENT_CONFIG} \n\t * Replica placement: ${REPLICA_CONFIG}\n\n"
+
+      echo -e "Retrieving topics list..."
+      TOPICS_LIST=$(get_topics)
+      echo -e "\n"
+
+      echo -e "Applying configuration changes to the following topics: $(echo $TOPICS_LIST | sed 's/ /, /g')\n\n"
+      apply_configs $TOPICS_LIST
+      echo -e "\n"
+
+      echo -e "Starting confluent-rebalancer to perform migration...\n\n"
+      start_rebalancer
+      echo -e "\n"
+
+      echo -e "Waiting for confluent-rebalancer to finish...\n"
+      wait_for_rebalancer
+      echo "*** Migration finished. ***"
+    }
+
+    main
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: change-replica-placement
+  namespace: dc1
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      restartPolicy: Never
+      # imagePullSecrets:
+      # - name: docker-registry-creds
+      containers:
+      - name: cp-kafka
+        image: confluentinc/cp-server:7.7.1
+        command: ['sh', '-c', '/replica-config/move_replicas.sh /replica-config/java-client.properties /replica-config/replica_to_dc2.json']
+        # command: ['sh', '-c', '/replica-config/move_replicas.sh /replica-config/java-client.properties /replica-config/replica_shared.json']
+        # command: ['sh', '-c', '/replica-config/move_replicas.sh /replica-config/java-client.properties /replica-config/observers_in_dc2.json']
+        # command: ['sh', '-c', 'tail -f /dev/null']
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+          requests:
+            cpu: 500m
+            memory: 128Mi
+        volumeMounts:
+        - mountPath: /replica-config/
+          name: replica-config
+          readOnly: true
+      volumes:
+      - name: replica-config
+        configMap:
+          name: replica-config
+          defaultMode: 0777

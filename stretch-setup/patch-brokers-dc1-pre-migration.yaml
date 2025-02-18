@@ -1,0 +1,21 @@
+spec:
+  dependencies:
+    zookeeper:
+      # authentication:
+      #   jaasConfig:
+      #     secretRef: credential
+        # type: digest
+      endpoint: zk10-proxy.bridge:2181,zk11-proxy.bridge:2181,zk12-proxy.bridge:2181,zookeeper.dc1.svc.cluster.local:2181/mrc
+  listeners:
+    replication:
+      # authentication:
+      #   jaasConfig:
+      #     secre tRef: credential
+      #   type: plain
+      tls:
+        enabled: false
+      externalAccess:
+        type: staticForPortBasedRouting
+        staticForPortBasedRouting:
+          host: kafka-proxy.bridge
+          portOffset: 9072
