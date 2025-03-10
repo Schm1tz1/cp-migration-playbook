@@ -209,12 +209,18 @@ Note: (Re-)Creating an existing topic via CR apply will "import" it to the track
 
 * Check cluster links:
 ```shell
-kubectl exec kafka-new-0 -n confluent -it \
+kubectl exec kafka-0 -n destination -it \
   -- kafka-cluster-links --list --bootstrap-server localhost:9092
 ```
 
 * Check mirrors:
 ```shell
-kubectl exec kafka-new-0 -n confluent -it \
+kubectl exec kafka-0 -n destination -it \
   -- kafka-mirrors --list --bootstrap-server localhost:9092
+```
+
+* Delete cluster links:
+```shell
+kubectl exec kafka-0 -n destination -it \
+  -- kafka-cluster-links --list --bootstrap-server localhost:9092
 ```
