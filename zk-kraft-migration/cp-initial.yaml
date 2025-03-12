@@ -1,0 +1,81 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Kafka
+metadata:
+  name: kafka
+  namespace: kraft
+  annotations:
+     platform.confluent.io/kraft-migration-ibp-version: "3.8"
+spec:
+  authorization:
+    type: simple
+    superUsers: 
+      - User:kafka.confluent.svc.cluster.local
+  configOverrides:
+    server:
+    # - allow.everyone.if.no.acl.found=true
+  replicas: 3
+  image:
+    application: confluentinc/cp-server:7.8.1
+    init: confluentinc/confluent-init-container:2.10.0
+  license:
+    globalLicense: true
+  dataVolumeCapacity: 10Gi
+  dependencies:
+     zookeeper:
+       endpoint: zookeeper.kraft.svc.cluster.local:2181
+  listeners:
+    internal:
+      authentication:
+        principalMappingRules:
+        - RULE:.*CN[\s]?=([a-zA-Z0-9.\-]*)?.*/$1/
+        type: mtls
+      tls:
+        enabled: true
+  tls:
+    secretRef: tls-kafka-internal 
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Zookeeper
+metadata:
+  name: zookeeper
+  namespace: kraft
+spec:
+  replicas: 3
+  image:
+    application: confluentinc/cp-zookeeper:7.8.1
+    init: confluentinc/confluent-init-container:2.10.0
+  dataVolumeCapacity: 10Gi
+  logVolumeCapacity: 10Gi
+  license:
+    globalLicense: true
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KRaftController
+metadata:
+  name: kraftcontroller
+  namespace: kraft
+  annotations:
+     platform.confluent.io/kraft-migration-hold-krc-creation: "true"
+spec:
+  authorization:
+    type: simple
+    superUsers: 
+      - User:kafka.confluent.svc.cluster.local
+  replicas: 3
+  dataVolumeCapacity: 10G
+  image:
+    application: confluentinc/cp-server:7.8.1
+    init: confluentinc/confluent-init-container:2.10.0
+  listeners:
+    controller:
+      authentication:
+        principalMappingRules:
+        - RULE:.*CN[\s]?=([a-zA-Z0-9.\-]*)?.*/$1/
+        type: mtls
+      tls:
+        enabled: true
+  tls:
+    secretRef: tls-kafka-internal
+  license:
+    globalLicense: true

@@ -1,0 +1,24 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kafka-certificate
+  namespace: kraft
+spec:
+  commonName: kafka.confluent.svc.cluster.local
+  dnsNames:
+    - kafka
+    - 'kafka.confluent.svc.cluster.local'
+    - 'kafka.confluent.svc.cluster.local'
+    - '*.kafka.kraft.svc.cluster.local'
+    - '*.kraftcontroller.kraft.svc.cluster.local'
+    - '*.zookeeper.kraft.svc.cluster.local'
+    - '*.kraft.svc.cluster.local'
+  issuerRef:
+    name: my-ca-issuer
+    kind: ClusterIssuer
+  secretName: tls-kafka-internal
+  # keystores:
+  #   jks:
+  #     create: true
+  #     password: "changeMe!"

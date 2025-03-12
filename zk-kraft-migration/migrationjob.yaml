@@ -1,0 +1,18 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KRaftMigrationJob
+metadata:
+  name: kraft-migration
+  namespace: kraft
+spec:
+  dependencies:
+    kafka:
+      name: kafka
+      namespace: kraft
+    zookeeper:
+      name: zookeeper
+      namespace: kraft
+    kRaftController:
+      name: kraftcontroller
+      namespace: kraft
+ 
