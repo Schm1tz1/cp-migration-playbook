@@ -27,11 +27,9 @@ Defaulted container "schemaregistry" out of: schemaregistry, config-init-contain
 kubectl apply -f schema-exporter.yaml
 ```
 
-* Check topics in destination cluster:
+* Check subjects in destination cluster:
 ```shell
-kubectl exec kafka-0 -n destination -it \
-  -- kafka-topics --bootstrap-server localhost:9092 --list
-kubectl get kafkatopics -A -o wide
+kubectl exec schemaregistry-0 -n destination -it -- bash -c "curl -k http://localhost:8081/subjects"
 ```
 
 ## Configure and start exporter using CLI
