@@ -1,6 +1,6 @@
 # Schema Linking
 Official Docs: https://docs.confluent.io/operator/current/co-link-schemas.html
-This example convers a setup of 2 CP clusters showing the possibilities of a topic mirroring/migration.
+This example convers a setup of 2 CP clusters showing the possibilities of a 1:1 schema linking into the default context without any prefixing/context changes.
 
 ## General Setup
 * Execute `./setup.sh` and wait for CP to be up and running and a schema to be created in the source.
