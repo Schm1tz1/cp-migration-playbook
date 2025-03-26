@@ -1,9 +1,10 @@
 # Cluster Linking
 Official Docs: https://docs.confluent.io/operator/current/co-link-clusters.html
-This example convers a setup of 2 CP clusters showing the possibilities of a topic mirroring/migration.
+This example covers a setup of 2 CP clusters showing the possibilities of a topic mirroring/migration.
 
 ## General Setup
 * Execute `./setup.sh` and wait for CP to be up and running and topic to be created.
+(Note: Default setup is CP with ZK -> CP with KRaft. Other possibilities like CCS to CE or ZK->ZK are available but commented out.)
 
 * Produce random data:
 ```shell
@@ -98,8 +99,21 @@ kubectl exec kafka-0 -n destination -it \
 * Check mirror topic status:
 ```shell
 kubectl exec kafka-0 -n destination -it \
-  -- kafka-replica-status --topics test-topic --include-mirror --bootstrap-server localhost:9092
+  -- kafka-replica-status --topics test-topic --include-mirror --bootstrap-server localhost:9092 
 ```
+
+```shell
+$ kubectl exec kafka-0 -n destination -it -- kafka-mirrors --bootstrap-server localhost:9092 --describe --links manual-link
+
+Topic: test-topic       LinkName: manual-link   LinkId: QHWuJ5rzQl-bAW_HxGErTg  SourceTopic: test-topic State: ACTIVE   SourceTopicId: AAAAAAAAAAAAAAAAAAAAAA StoppedSequenceNumber: 0        StateTime: 2025-03-26 10:21:52
+        Partition: 0    State: ACTIVE   LocalLogEndOffset: 1044475      LastFetchSourceHighWatermark: 1044475   Lag: 0  TimeSinceLastFetchMs: 866
+        Partition: 1    State: ACTIVE   LocalLogEndOffset: 1019278      LastFetchSourceHighWatermark: 1019278   Lag: 0  TimeSinceLastFetchMs: 890
+        Partition: 2    State: ACTIVE   LocalLogEndOffset: 913420       LastFetchSourceHighWatermark: 913420    Lag: 0  TimeSinceLastFetchMs: 851
+        Partition: 3    State: ACTIVE   LocalLogEndOffset: 1092238      LastFetchSourceHighWatermark: 1092238   Lag: 0  TimeSinceLastFetchMs: 823
+        Partition: 4    State: ACTIVE   LocalLogEndOffset: 929115       LastFetchSourceHighWatermark: 929115    Lag: 0  TimeSinceLastFetchMs: 889
+        Partition: 5    State: ACTIVE   LocalLogEndOffset: 1001474      LastFetchSourceHighWatermark: 1001474   Lag: 0  TimeSinceLastFetchMs: 779
+```
+
 If there is no lag, promote the topic!
 
 * Promote mirror topic and check status:
@@ -138,49 +152,6 @@ confluent   test-topic-new   1          6           CREATED   PX_J8slKTsmGZNfNMS
 ```shell
 kubectl delete -f topic.yaml
 ```
-
-### Working with conflicing and patched CRs
-WARNING !!! Do not try to delete a CR with the same name and namespace combination and only changing ownership (e.g. by patching kafkaClusterRef.name). It will result in conflicts because on k8s lever ownership is preserved. This will cause deletion of the topic in the cluster that was set as an owner upon creation - example:
-```shell
-$ kubectl patch kafkatopic -n confluent test-topic-new -p '{"spec": {"kafkaClusterRef": {"name": "kafka", "namespace": "confluent"}}}' --type merge
-$ kubectl get kafkatopic test-topic-new -n confluent -o yaml
-apiVersion: platform.confluent.io/v1beta1
-kind: KafkaTopic
-metadata:
-  ...
-  name: test-topic-new
-  namespace: confluent
-  ownerReferences:
-  - apiVersion: platform.confluent.io/v1beta1
-    blockOwnerDeletion: true
-    controller: true
-    kind: Kafka
-    name: kafka-new
-    uid: 584a6dc0-0805-4149-8ba9-7999a272b886
-  resourceVersion: "384966"
-  uid: f20b13d0-0b25-4b2a-83d5-24ca58a8210f
-spec:
-  configs:
-    cleanup.policy: delete
-  kafkaClusterRef:
-    name: kafka
-    namespace: confluent
-  name: test-topic
-  partitionCount: 6
-  replicas: 1
-status:
-  appState: Created
-  conditions:
-  - lastProbeTime: "2024-07-17T15:35:49Z"
-    lastTransitionTime: "2024-07-17T15:35:49Z"
-    message: Application is created
-    reason: Created
-    status: "True"
-    type: platform.confluent.io/app-ready
-  kafkaCluster: confluent/kafka
-  kafkaClusterID: Kh49VqjhTomwNiBhiqIEAA
-```
-Calling `kubectl delete kafkatopic test-topic-new -n confluent` will leave the topic in **ERROR** state because of conflicting ownership settings and delete the log directories on the original owner resource (`kafka-new` is this case).
 
 ## Advanced Cluster Link Configuration
 * Auto-sync all topics and consume groups:
