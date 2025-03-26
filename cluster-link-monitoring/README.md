@@ -37,7 +37,7 @@ helm upgrade --install grafana grafana/grafana \
 kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
-* Make sure you have the correct JMX exporter configs set for the Kafka CR (via spec.metrics.prometheus), also see the example in [JMX Monitoring Stacks](https://github.com/confluentinc/jmx-monitoring-stacks/blob/main/jmxexporter-prometheus-grafana/cfk/demo/confluent-platform-singlenode.yaml):\
+* Make sure you have the correct JMX exporter configs set for the Kafka CR (via spec.metrics.prometheus), also see the example in [JMX Monitoring Stacks](https://github.com/confluentinc/jmx-monitoring-stacks/blob/main/jmxexporter-prometheus-grafana/cfk/demo/confluent-platform-singlenode.yaml):
 ```yaml
 spec:
     metrics:
