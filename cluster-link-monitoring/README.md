@@ -18,7 +18,7 @@ helm upgrade --install prometheus prometheus-community/prometheus \
  --namespace monitoring
 ```
 
-* Create dachbaords configmap:
+* Create dashboards configmap:
 ```shell
 kubectl create configmap grafana-dashboards \
   --namespace monitoring \
