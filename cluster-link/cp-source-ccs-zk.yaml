@@ -8,8 +8,8 @@ metadata:
 spec:
   replicas: 3 
   image:
-    application: confluentinc/cp-zookeeper:7.8.0
-    init: confluentinc/confluent-init-container:2.10.0
+    application: confluentinc/cp-zookeeper:7.9.0
+    init: confluentinc/confluent-init-container:2.11.0
   license:
     globalLicense: true
   dataVolumeCapacity: 1Gi
@@ -23,8 +23,8 @@ metadata:
 spec:
   replicas: 3
   image:
-    application: confluentinc/cp-kafka:7.8.0
-    init: confluentinc/confluent-init-container:2.10.0
+    application: confluentinc/cp-kafka:7.9.0
+    init: confluentinc/confluent-init-container:2.11.0
   license:
     globalLicense: true
   configOverrides:
@@ -433,8 +433,8 @@ spec:
   replicas: 1
   enableSchemaExporter: true
   image:
-    application: confluentinc/cp-schema-registry:7.8.0
-    init: confluentinc/confluent-init-container:2.10.0
+    application: confluentinc/cp-schema-registry:7.9.0
+    init: confluentinc/confluent-init-container:2.11.0
   license:
     globalLicense: true
   dependencies:
