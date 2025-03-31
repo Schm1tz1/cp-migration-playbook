@@ -81,14 +81,51 @@ $ diff old.txt new.txt
 ```
 
 ## ClusterLink Setup using ClusterLink-CLI
+
+### Semi-Automated Run
+```shell
+# Set up Clusters and create topics
+./setup.sh
+
+# Start Clister Link
+./clink_cli_1_start.sh  
+
+# Check status (wait for lag=0 in all mirror topics)
+./clink_cli_2_status.sh 
+
+# Finally: promote
+./clink_cli_3_promote.sh
+```
+
+### Manual Steps
 * Create manual Cluster Link and mirror topics:
 ```shell
 kubectl exec kafka-0 -n destination -it \
   -- kafka-cluster-links --bootstrap-server localhost:9092 --create --link manual-link --config bootstrap.servers=kafka.source.svc.cluster.local:9092
 
 kubectl exec kafka-0 -n destination -it \
-  -- kafka-mirrors --create --mirror-topic test-topic --link manual-link --bootstrap-server localhost:9092
+  -- kafka-mirrors --create --mirror-topic test-topic --link manual-link --bootstrap-server localhost:9092 --config-file <...>
 ```
+
+Example with advanced configuration file:
+```shell
+kubectl exec kafka-0 -n destination -it -- 
+cat <<EOF >/tmp/clink.properties
+bootstrap.servers=kafka.source.svc.cluster.local:9092
+consumer.offset.sync.enable=true
+consumer.group.prefix.enable=false
+auto.create.mirror.topics.enable=true
+acl.sync.enable=false
+EOF
+
+kubectl exec kafka-0 -n destination -it \
+  kafka-cluster-links --bootstrap-server localhost:9092 --create --link manual-link \
+  --config-file /tmp/clink.properties \
+  --consumer-group-filters-json '{"groupFilters": [{ "name": "*", "patternType": "LITERAL", "filterType": "INCLUDE"}]}' \
+  --topic-filters-json '{"topicFilters":[{"name": "*","patternType": "LITERAL","filterType": "INCLUDE"}]}'
+
+```
+
 * List and check topics in destination cluster:
 ```shell
 kubectl exec kafka-0 -n destination -it \
@@ -118,8 +155,13 @@ If there is no lag, promote the topic!
 
 * Promote mirror topic and check status:
 ```shell
+# By topic
 kubectl exec kafka-0 -n destination -it \
   -- kafka-mirrors --promote --topics test-topic --bootstrap-server localhost:9092
+
+# By link (auto-answer with yes)
+kubectl exec kafka-0 -n destination -it \
+  -- kafka-mirrors --promote --link manual-link --bootstrap-server localhost:9092 --force
 
 kubectl exec kafka-0 -n destination -it \
   -- kafka-mirrors --describe --topics test-topic --pending-stopped-only --bootstrap-server localhost:9092
@@ -154,12 +196,14 @@ kubectl delete -f topic.yaml
 ```
 
 ## Advanced Cluster Link Configuration
-* Auto-sync all topics and consume groups:
+* Auto-sync all topics and consumer groups:
 ```yaml
+bootstrap.servers=kafka.source.svc.cluster.local:9092
 consumer.offset.sync.enable=true
+consumer.group.prefix.enable=false
+consumer.offset.group.filters={"groupFilters": [{ "name": "*", "patternType": "LITERAL", "filterType": "INCLUDE"}]}
 auto.create.mirror.topics.enable=true
 auto.create.mirror.topics.filters={"topicFilters":[{"name": "*","patternType": "LITERAL","filterType": "INCLUDE"}]}
-consumer.group.prefix.enable=false
 acl.sync.enable=false
 ```
 * For destination-initiated CL simply create the link in the destination cluster and set both `bootstrap.servers` accordingly
@@ -182,6 +226,13 @@ Note: (Re-)Creating an existing topic via CR apply will "import" it to the track
 ```shell
 kubectl exec kafka-0 -n destination -it \
   -- kafka-cluster-links --list --bootstrap-server localhost:9092
+```
+
+* Script to create 1:1 mirror topics:
+```shell
+kubectl exec -n source kafka-0 -- \
+  kafka-topics --bootstrap-server localhost:9071 --describe --exclude-internal \
+  | grep 'Configs:' | awk -F"\t" '{print $1, $3, $4}'
 ```
 
 * Check mirrors:

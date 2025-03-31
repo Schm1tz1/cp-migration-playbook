@@ -9,8 +9,12 @@ spec:
   oneReplicaPerNode: true
   dataVolumeCapacity: 1G
   image:
-    application: confluentinc/cp-server:7.8.0
-    init: confluentinc/confluent-init-container:2.10.0
+    application: confluentinc/cp-server:7.9.0
+    init: confluentinc/confluent-init-container:2.11.0
+  configOverrides:
+    server:
+      - default.replication.factor=3
+      - min.insync.replicas=2
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Kafka
@@ -20,13 +24,15 @@ metadata:
 spec:
   replicas: 3
   image:
-    application: confluentinc/cp-server:7.8.0
-    init: confluentinc/confluent-init-container:2.10.0
+    application: confluentinc/cp-server:7.9.0
+    init: confluentinc/confluent-init-container:2.11.0
   license:
     globalLicense: true
   configOverrides:
     server:
       - inter.broker.protocol.version=3.8
+      - default.replication.factor=3
+      - min.insync.replicas=2
   dataVolumeCapacity: 1Gi
   dependencies:
     kRaftController:
@@ -431,8 +437,8 @@ spec:
   replicas: 1
   enableSchemaExporter: true
   image:
-    application: confluentinc/cp-schema-registry:7.8.0
-    init: confluentinc/confluent-init-container:2.10.0
+    application: confluentinc/cp-schema-registry:7.9.0
+    init: confluentinc/confluent-init-container:2.11.0
   license:
     globalLicense: true
   dependencies:
