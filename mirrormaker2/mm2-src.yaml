@@ -1,0 +1,19 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: mm2-test-topic
+  namespace: source
+spec:
+  class: org.apache.kafka.connect.mirror.MirrorSourceConnector
+  taskMax: 1
+  configs:
+    source.cluster.alias: SRC
+    target.cluster.alias: DST
+    topics: test-topic
+    source.cluster.bootstrap.servers: kafka.source.svc.cluster.local:9092
+    target.cluster.bootstrap.servers: kafka.destination.svc.cluster.local:9092
+    producer.override.bootstrap.servers: kafka.destination.svc.cluster.local:9092
+    key.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+    value.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+    replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
