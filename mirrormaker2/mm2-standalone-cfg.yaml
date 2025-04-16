@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mm2-config
+data:
+  mm2.properties: |
+    clusters = SRC, DST
+
+    # Source Cluster
+    SRC.bootstrap.servers=kafka.source.svc.cluster.local:9092
+    # SRC.security.protocol=SASL_SSL
+    # SRC.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';
+    # SRC.sasl.mechanism=PLAIN
+
+    # Destination Cluster
+    DST.bootstrap.servers=kafka.destination.svc.cluster.local:9092
+    # DST.security.protocol=SASL_SSL
+    # DST.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';
+    # DST.sasl.mechanism=PLAIN
+
+    key.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+    value.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+
+    # Mirroring flows
+    SRC->DST.enabled = true
+    SRC->DST.topics = test-topic
+
+    # No group offsets replication
+    SRC->DST.groups.exclude = .*
+    SRC->DST.sync.group.offsets.enabled = false
+    SRC->DST.emit.checkpoints.interval.seconds = 10
+    
+    SRC->DST.refresh.groups.enabled = false
+    SRC->DST.emit.heartbeats.enabled = false
+    SRC->DST.emit.checkpoints.enabled = false
+    SRC->DST.sync.topic.acls.enabled = false
+
+    # Setting replication factor of newly created remote topics
+    replication.factor=3
+
+    ############################# Internal Topic Settings  #############################
+    # The replication factor for mm2 internal topics "heartbeats", "B.checkpoints.internal" and
+    # "mm2-offset-syncs.B.internal"
+    # For anything other than development testing, a value greater than 1 is recommended to ensure availability such as 3.
+    checkpoints.topic.replication.factor=3
+    heartbeats.topic.replication.factor=3
+    offset-syncs.topic.replication.factor=3
+
+    # The replication factor for connect internal topics "mm2-configs.B.internal", "mm2-offsets.B.internal" and
+    # "mm2-status.B.internal"
+    # For anything other than development testing, a value greater than 1 is recommended to ensure availability such as 3.
+    offset.storage.replication.factor=3
+    status.storage.replication.factor=3
+    config.storage.replication.factor=3
+
+    # customize as needed
+    # replication.policy.separator = _
+    # sync.topic.acls.enabled = false
+    # emit.heartbeats.interval.seconds = 5
+    replication.policy.class = org.apache.kafka.connect.mirror.IdentityReplicationPolicy
+
+  log4j.properties: |
+    log4j.appender.stdout.layout.fields=app:mm2
+    connect.log.pattern=[%d] %p %X{connector.context}%m (%c:%L)%n
+    log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+    log4j.appender.stdout.layout=org.apache.log4j.EnhancedPatternLayout
+    log4j.appender.stdout.layout.ConversionPattern=${connect.log.pattern}
+    log4j.logger.org.I0Itec.zkclient=ERROR
+    log4j.logger.org.apache.zookeeper=ERROR
+    log4j.logger.org.reflections=ERROR
+    log4j.rootLogger=INFO, stdout
