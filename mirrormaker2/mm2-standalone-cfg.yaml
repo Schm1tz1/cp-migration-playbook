@@ -28,7 +28,7 @@ data:
 
     # Mirroring flows
     SRC->DST.enabled = true
-    SRC->DST.topics = pageviews
+    SRC->DST.topics = test-topic
 
     # No group offsets replication
     SRC->DST.groups.exclude = .*
@@ -74,3 +74,8 @@ data:
     log4j.logger.org.apache.zookeeper=ERROR
     log4j.logger.org.reflections=ERROR
     log4j.rootLogger=INFO, stdout
+
+  jmx-exporter.yaml: |
+    lowercaseOutputLabelNames: false
+    lowercaseOutputName: true
+    ssl: false

@@ -28,6 +28,8 @@ spec:
         env:
         - name: KAFKA_LOG4J_OPTS
           value: "-Dlog4j.configuration=file:/mnt/config/log4j.properties"
+        - name: EXTRA_ARGS
+          value: "-javaagent:/usr/share/java/cp-base-new/jmx_prometheus_javaagent-0.18.0.jar=7778:/mnt/config/jmx-exporter.yaml"
         command: ['/bin/sh','-xc']
         args: ['/usr/bin/connect-mirror-maker /mnt/config/mm2.properties']
       volumes:

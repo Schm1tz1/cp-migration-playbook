@@ -82,3 +82,6 @@ kubectl apply -f ./mm2-standalone-cfg.yaml -n destination
 kubectl apply -f ./mm2-standalone-secret.yaml -n destination
 kubectl apply -f ./mm2-standalone.yaml -n destination
 ```
+
+### Adding Monitoring Agents
+By default, a simple prometheus JMX exporter is added. Make sure that the file `/mnt/config/jmx-exporter.yaml` is mounted correctly from the ConfigMap and also check that the agent JAR exists and has the correct version in the MM2 deployment `EXTRA_ARGS` (e.g. `/usr/share/java/cp-base-new/jmx_prometheus_javaagent-0.18.0.jar` for CP 7.8.1). 
