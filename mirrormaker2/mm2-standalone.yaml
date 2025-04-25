@@ -23,6 +23,8 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /mnt/config
+        - name: secret-volume
+          mountPath: /mnt/secrets
         env:
         - name: KAFKA_LOG4J_OPTS
           value: "-Dlog4j.configuration=file:/mnt/config/log4j.properties"
@@ -32,3 +34,6 @@ spec:
         - name: config-volume
           configMap:
             name: mm2-config
+        - name: secret-volume
+          secret:
+            secretName: mm2-secret

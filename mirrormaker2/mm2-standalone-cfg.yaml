@@ -4,18 +4,23 @@ metadata:
   name: mm2-config
 data:
   mm2.properties: |
+    config.providers=file,dir,env
+    config.providers.dir.class=org.apache.kafka.common.config.provider.DirectoryConfigProvider
+    config.providers.env.class=org.apache.kafka.common.config.provider.EnvVarConfigProvider
+    config.providers.file.class=org.apache.kafka.common.config.provider.FileConfigProvider
+
     clusters = SRC, DST
 
     # Source Cluster
-    SRC.bootstrap.servers=kafka.source.svc.cluster.local:9092
+    SRC.bootstrap.servers=${file:/mnt/secrets/mm2-credentials.txt:src.bootstrap}
     # SRC.security.protocol=SASL_SSL
-    # SRC.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';
+    # SRC.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="${file:/mnt/secrets/mm2-credentials.txt:src.username}" password="${file:/mnt/secrets/mm2-credentials.txt:src.password}";
     # SRC.sasl.mechanism=PLAIN
 
     # Destination Cluster
-    DST.bootstrap.servers=kafka.destination.svc.cluster.local:9092
+    DST.bootstrap.servers=${file:/mnt/secrets/mm2-credentials.txt:dst.bootstrap}
     # DST.security.protocol=SASL_SSL
-    # DST.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username='...' password='...';
+    # DST.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="${file:/mnt/secrets/mm2-credentials.txt:dst.username}" password="${file:/mnt/secrets/mm2-credentials.txt:dst.password}";
     # DST.sasl.mechanism=PLAIN
 
     key.converter: org.apache.kafka.connect.converters.ByteArrayConverter
@@ -23,7 +28,7 @@ data:
 
     # Mirroring flows
     SRC->DST.enabled = true
-    SRC->DST.topics = test-topic
+    SRC->DST.topics = pageviews
 
     # No group offsets replication
     SRC->DST.groups.exclude = .*
