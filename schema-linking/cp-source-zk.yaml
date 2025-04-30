@@ -68,3 +68,6 @@ spec:
   dependencies:
     kafka:  
       bootstrapEndpoint: kafka.source.svc.cluster.local:9071
+  configOverrides:
+    server:
+      - password.encoder.secret=AnyPasswordYouLikeToUserHere
