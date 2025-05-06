@@ -41,7 +41,6 @@ spec:
   dnsNames:
     - kafka
     - 'kafka.confluent.svc.cluster.local'
-    - 'kafka.confluent.svc.cluster.local'
     - '*.kafka.kraft.svc.cluster.local'
     - '*.kraftcontroller.kraft.svc.cluster.local'
     - '*.zookeeper.kraft.svc.cluster.local'

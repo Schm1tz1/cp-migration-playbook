@@ -78,6 +78,8 @@ spec:
     superUsers: 
       - User:kafka.confluent.svc.cluster.local
   configOverrides:
+    # jvm:
+      # - -Djava.security.auth.login.config=/mnt/secrets/digest-jaas.conf
     log4j:
       - log4j.logger.org.apache.kafka.metadata.migration=TRACE
   replicas: 3
