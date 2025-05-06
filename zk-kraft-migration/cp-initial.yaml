@@ -12,8 +12,11 @@ spec:
     superUsers: 
       - User:kafka.confluent.svc.cluster.local
   configOverrides:
+    log4j:
+      - log4j.logger.org.apache.kafka.metadata.migration=TRACE
     server:
     # - allow.everyone.if.no.acl.found=true
+    # - zookeeper.set.acl=true
   replicas: 3
   image:
     application: confluentinc/cp-server:7.8.1
@@ -22,8 +25,14 @@ spec:
     globalLicense: true
   dataVolumeCapacity: 10Gi
   dependencies:
-     zookeeper:
-       endpoint: zookeeper.kraft.svc.cluster.local:2181
+    zookeeper:
+      endpoint: zookeeper.kraft.svc.cluster.local:2182
+      authentication:
+        type: digest
+        jaasConfig:
+          secretRef: credential
+      tls:
+        enabled: true
   listeners:
     internal:
       authentication:
@@ -49,6 +58,12 @@ spec:
   logVolumeCapacity: 10Gi
   license:
     globalLicense: true
+  authentication:
+    jaasConfig:
+      secretRef: credential
+    type: digest
+  tls:
+    secretRef: tls-kafka-internal 
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: KRaftController
@@ -62,6 +77,9 @@ spec:
     type: simple
     superUsers: 
       - User:kafka.confluent.svc.cluster.local
+  configOverrides:
+    log4j:
+      - log4j.logger.org.apache.kafka.metadata.migration=TRACE
   replicas: 3
   dataVolumeCapacity: 10G
   image:
