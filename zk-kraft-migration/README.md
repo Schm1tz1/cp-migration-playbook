@@ -8,15 +8,11 @@
 * Official Examples: https://github.com/confluentinc/confluent-kubernetes-examples/tree/master/migration/KRaftMigration
 
 ## Steps
-* Have issuers, certs and credentials prepared:
-```shell
-
-```
-
 * Deploy initial CP:
 ```shell
 kubectl create ns kraft
 kubectl apply -f certs.yaml
+kubectl apply -f credentials.yaml
 kubectl apply -f cp-initial.yaml
 ```
 * Start *ZK to KRaft* migration:
