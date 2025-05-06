@@ -43,3 +43,17 @@ kubectl annotate kmj kraft-migration -n kraft platform.confluent.io/kraft-migrat
 ```shell
 kubectl delete zookeepers zookeeper -n kraft
 ```
+
+## Known issues
+In case, Zookeeper is using [Zookeeper ACLs](https://zookeeper.apache.org/doc/r3.1.2/zookeeperProgrammers.html#sc_ZooKeeperAccessControl) for access control (e.g. by setting `zookeeper.set.acl=true` in Kafka CR `spec.configOverrides.server`), unauthenticated access by KRaft Controllers during migration will run into authorization issues. This is indicated by the migration being stuck in `PhaseMigration` and never reaching dual write phase as well as log entries in KRadr contorllers showing exceptions like `org.apache.kafka.metadata.migration.MigrationClientAuthException: org.apache.zookeeper.KeeperException$NoAuthException: KeeperErrorCode = NoAuth for /consumers`.
+It appasrs that by default, KRaft is trying unauthenricated access to Zookeeper even though configured correctly in Kafka CR.
+Fix/Workaround: Explicitly add override for KRaftControllers:
+```yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: KRaftController
+...
+spec:
+  configOverrides:
+    jvm: 
+      - -Djava.security.auth.login.config=/mnt/secrets/digest-jaas.conf
+```
