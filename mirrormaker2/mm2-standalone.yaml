@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: kconnect
-        # image: confluentinc/cp-server-connect:7.9.0
+        # image: confluentinc/cp-server-connect:7.9.1
         # Note: There is https://issues.apache.org/jira/browse/KAFKA-18007 causing issues with initial consumer group fetch 
         #       since AK 3.9.0 (with a fix in 4.0.0). We are using an older image to avoid this.
         image: confluentinc/cp-server-connect:7.8.1

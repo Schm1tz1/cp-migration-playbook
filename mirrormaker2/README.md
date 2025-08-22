@@ -72,7 +72,7 @@ Push-scenario (MM2 in source cluster) needs producer-override:
 ```
 
 ### Standalone MM2
-* Deploy connector CR according to use-case:
+* Deploy CR according to use-case:
 ```shell
 kubectl apply -f ./mm2-standalone-cfg.yaml -n source
 kubectl apply -f ./mm2-standalone-secret.yaml -n source
