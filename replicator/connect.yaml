@@ -8,3 +8,12 @@ spec:
   image:
     application: confluentinc/cp-server-connect:7.9.1
     init: confluentinc/confluent-init-container:2.11.1
+  build:
+    type: onDemand
+    onDemand:
+      plugins:
+        locationType: confluentHub
+        confluentHub:
+          - name: kafka-connect-replicator
+            owner: confluentinc
+            version: 7.9.1

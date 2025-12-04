@@ -1,0 +1,19 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: replicator-pull
+  namespace: destination
+spec:
+  class: io.confluent.connect.replicator.ReplicatorSourceConnector
+  taskMax: 1
+  configs:
+    header.converter: io.confluent.connect.replicator.util.ByteArrayConverter
+    key.converter: io.confluent.connect.replicator.util.ByteArrayConverter
+    value.converter: io.confluent.connect.replicator.util.ByteArrayConverter
+    # topic.whitelist: test-topic
+    # topic.blacklist: doNotReplicate
+    topic.regex: ^test-.*
+    topic.rename.format: ${topic}.replicated
+    topic.auto.create: "false"
+    src.kafka.bootstrap.servers: kafka.source.svc.cluster.local:9092

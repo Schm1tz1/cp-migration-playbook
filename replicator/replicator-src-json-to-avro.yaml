@@ -1,0 +1,37 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: replicator-push
+  namespace: source
+spec:
+  class: io.confluent.connect.replicator.ReplicatorSourceConnector
+  taskMax: 1
+  configs:
+    header.converter: io.confluent.connect.replicator.util.ByteArrayConverter
+    key.converter: io.confluent.connect.replicator.util.ByteArrayConverter
+    value.converter: io.confluent.connect.avro.AvroConverter
+    value.converter.schemas.enable: "true"
+    value.converter.schema.registry.url: http://schemaregistry.destination.svc.cluster.local:8081
+    # value.converter.basic.auth.credentials.source: USER_INFO
+    # value.converter.schema.registry.basic.auth.user.info: user:password
+    # topic.whitelist: test-topic
+    # topic.blacklist: doNotReplicate
+    topic.regex: ^test-.*
+    topic.rename.format: ${topic}.replicated
+    topic.auto.create: "false"
+    src.kafka.bootstrap.servers: kafka.source.svc.cluster.local:9092
+    # src.kafka.security.protocol: SASL_SSL
+    # src.kafka.sasl.mechanism: PLAIN
+    # src.kafka.sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username=\"REDACTED\" password=\"REDACTED\"
+    src.value.converter: org.apache.kafka.connect.json.JsonConverter
+    src.value.converter.schemas.enable: "false"
+    dest.kafka.bootstrap.servers: kafka.destination.svc.cluster.local:9092
+    # dest.kafka.security.protocol: SASL_SSL
+    # dest.kafka.sasl.mechanism" : PLAIN
+    # dest.kafka.sasl.jaas.config" : org.apache.kafka.common.security.plain.PlainLoginModule required username=\"REDACTED\" password=\"REDACTED\"
+    confluent.topic.bootstrap.servers: kafka.source.svc.cluster.local:9092
+    producer.override.bootstrap.servers: kafka.destination.svc.cluster.local:9092
+    # producer.override.security.protocol: SASL_SSL
+    # producer.override.sasl.mechanism"" : PLAIN
+    # producer.override.sasl.jaas.config" : org.apache.kafka.common.security.plain.PlainLoginModule required username=\"REDACTED\" password=\"REDACTED\"
