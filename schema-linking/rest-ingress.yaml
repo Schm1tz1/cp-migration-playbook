@@ -1,0 +1,29 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rest-ingress-src
+  namespace: source
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`rest-src.k8s.schmitzi.net`)
+      services:
+        - name: kafka
+          port: 8090
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rest-ingress-dst
+  namespace: destination
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`rest-dst.k8s.schmitzi.net`)
+      services:
+        - name: kafka
+          port: 8090

@@ -30,9 +30,14 @@ Replicator is deployed using Kafka Connect. Steps:
 # pull-scenario (default)
 kubectl apply -f ./connect.yaml -n source
 kubectl apply -f ./replicator-dest-byte.yaml
+
 # OR push-scenario:
 kubectl apply -f ./connect.yaml -n destination
 kubectl apply -f ./replicator-src-byte.yaml
+
+# OR in-cluster scenario in destination cluster (e.g. for in-cluster partition changes):
+kubectl apply -f ./connect.yaml -n destination
+kubectl apply -f ./replicator-dest-byte-incluster.yaml
 ```
 
 * Connector example configurations:
@@ -68,6 +73,26 @@ Push-scenario (Replicator in source cluster) needs producer-override:
   "topic.regex": "^test-.*",
   "topic.rename.format": "${topic}.replicated",
   "value.converter": "io.confluent.connect.replicator.util.ByteArrayConverter"
+}
+```
+
+In-cluster scenario in destination cluster (e.g. for in-cluster partition changes):
+```json
+{
+    "name": "replicator-incluster",
+    "connector.class": "io.confluent.connect.replicator.ReplicatorSourceConnector",
+    "tasks.max": "1",
+    "topic.regex": "in-cluster-test",
+    "topic.rename.format": "${topic}-replicated",
+    "header.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
+    "offset.topic.commit": "false",
+    "dest.kafka.bootstrap.servers": "kafka.destination.svc.cluster.local:9092",
+    "topic.config.sync": "false",
+    "topic.preserve.partitions": "false",
+    "topic.auto.create": "false",
+    "value.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
+    "key.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
+    "src.kafka.bootstrap.servers": "kafka.destination.svc.cluster.local:9092"
 }
 ```
 

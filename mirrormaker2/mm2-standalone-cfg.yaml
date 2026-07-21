@@ -9,6 +9,15 @@ data:
     config.providers.env.class=org.apache.kafka.common.config.provider.EnvVarConfigProvider
     config.providers.file.class=org.apache.kafka.common.config.provider.FileConfigProvider
 
+    # --- MM2 REST API ---
+    listeners=http://0.0.0.0:8083
+    rest.advertised.host.name=mm2-rest
+    rest.advertised.port=8083
+
+    # (do NOT set rest.advertised.listener – that’s not a valid property)
+    # Optionally also keep this for backward compatibility, but not required:
+    # rest.port=8083
+
     clusters = SRC, DST
 
     # Source Cluster

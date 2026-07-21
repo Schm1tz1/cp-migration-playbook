@@ -31,11 +31,12 @@ kubectl exec kcat -it -- bash -c "date | \
 MM2 is deployed using Kafka Connect. Steps:
 * Deploy connector CR according to use-case:
 ```shell
+# pull-scenario (default)
 kubectl apply -f ./connect.yaml -n source
-kubectl apply -f ./mm2-src.yaml
-# OR:
-kubectl apply -f ./connect.yaml -n destination
 kubectl apply -f ./mm2-dest.yaml
+# OR push-scenario:
+kubectl apply -f ./connect.yaml -n destination
+kubectl apply -f ./mm2-src.yaml
 ```
 Note: Default naming of the destination topic is by prefixing with the source cluster alias, e.g. `test-topic` will be mirrored to `SRC.test-topic` by default. By using `replication.policy.class=org.apache.kafka.connect.mirror.IdentityReplicationPolicy` (available since AK 3.0), topic names will be mirrored 1:1. This is added to the CR configs in this example by default.
 

@@ -1,0 +1,70 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KRaftController
+metadata:
+  name: kraftcontroller
+  namespace: destination
+spec:
+  replicas: 3
+  oneReplicaPerNode: true
+  dataVolumeCapacity: 1G
+  image:
+    application: confluentinc/cp-server:8.1.0
+    init: confluentinc/confluent-init-container:3.1.0
+  configOverrides:
+    server:
+      - default.replication.factor=3
+      - min.insync.replicas=2
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Kafka
+metadata:
+  name: kafka
+  namespace: destination
+spec:
+  replicas: 3
+  image:
+    application: confluentinc/cp-server:7.9.1
+    init: confluentinc/confluent-init-container:3.1.0
+  license:
+    globalLicense: true
+  configOverrides:
+    server:
+      - inter.broker.protocol.version=3.8
+      - default.replication.factor=3
+      - min.insync.replicas=2
+  dataVolumeCapacity: 1Gi
+  dependencies:
+    kRaftController:
+      clusterRef:
+        name: kraftcontroller
+  metricReporter:
+    enabled: true
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaRestClass
+metadata:
+  name: kafka-rest
+  namespace: destination
+spec:
+  kafkaClusterRef:
+    name: kafka
+  kafkaRest:
+    endpoint: http://kafka.destination.svc.cluster.local:8090
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: SchemaRegistry
+metadata:
+  name: schemaregistry
+  namespace: destination
+spec:
+  replicas: 1
+  enableSchemaExporter: true
+  image:
+    application: confluentinc/cp-schema-registry:7.9.1
+    init: confluentinc/confluent-init-container:3.1.0
+  license:
+    globalLicense: true
+  dependencies:
+    kafka:  
+      bootstrapEndpoint: kafka.destination.svc.cluster.local:9071

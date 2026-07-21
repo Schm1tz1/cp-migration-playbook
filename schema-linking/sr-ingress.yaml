@@ -1,0 +1,29 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sr-ingress-src
+  namespace: source
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`sr-src.k8s.schmitzi.net`)
+      services:
+        - name: schemaregistry
+          port: 8081
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sr-ingress-dst
+  namespace: destination
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`sr-dst.k8s.schmitzi.net`)
+      services:
+        - name: schemaregistry
+          port: 8081

@@ -14,24 +14,23 @@ spec:
         app: mm2
     spec:
       containers:
-      - name: kconnect
-        # image: confluentinc/cp-server-connect:7.9.1
-        # Note: There is https://issues.apache.org/jira/browse/KAFKA-18007 causing issues with initial consumer group fetch 
-        #       since AK 3.9.0 (with a fix in 4.0.0). We are using an older image to avoid this.
-        image: confluentinc/cp-server-connect:7.8.1
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-        - name: config-volume
-          mountPath: /mnt/config
-        - name: secret-volume
-          mountPath: /mnt/secrets
-        env:
-        - name: KAFKA_LOG4J_OPTS
-          value: "-Dlog4j.configuration=file:/mnt/config/log4j.properties"
-        - name: EXTRA_ARGS
-          value: "-javaagent:/usr/share/java/cp-base-new/jmx_prometheus_javaagent-0.18.0.jar=7778:/mnt/config/jmx-exporter.yaml"
-        command: ['/bin/sh','-xc']
-        args: ['/usr/bin/connect-mirror-maker /mnt/config/mm2.properties']
+        - name: kconnect
+          image: confluentinc/cp-server-connect:7.8.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+          volumeMounts:
+            - name: config-volume
+              mountPath: /mnt/config
+            - name: secret-volume
+              mountPath: /mnt/secrets
+          env:
+            - name: KAFKA_LOG4J_OPTS
+              value: "-Dlog4j.configuration=file:/mnt/config/log4j.properties"
+            - name: EXTRA_ARGS
+              value: "-javaagent:/usr/share/java/cp-base-new/jmx_prometheus_javaagent-0.18.0.jar=7778:/mnt/config/jmx-exporter.yaml"
+          command: ["/bin/sh", "-xc"]
+          args: ["/usr/bin/connect-mirror-maker /mnt/config/mm2.properties"]
       volumes:
         - name: config-volume
           configMap:
@@ -39,3 +38,17 @@ spec:
         - name: secret-volume
           secret:
             secretName: mm2-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mm2-rest
+spec:
+  selector:
+    app: mm2
+  ports:
+    - name: rest
+      port: 8083
+      targetPort: 8083
+      protocol: TCP
+  type: ClusterIP

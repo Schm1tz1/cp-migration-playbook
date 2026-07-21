@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sr-basic-auth-secret
+  namespace: destination
+type: kubernetes.io/basic-auth
+data:
+  username: dXNlcg== # username: user
+  password: cGFzc3dvcmQ= # password: password
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: sr-basic-auth
+  namespace: destination
+spec:
+  basicAuth:
+    secret: sr-basic-auth-secret
+    removeHeader: false # default is false
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: http-ingress
+  namespace: destination
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`schema.k8s.schmitzi.net`)
+      services:
+        - name: schemaregistry-0-internal
+          port: 8081
+      middlewares:
+        - name: sr-basic-auth

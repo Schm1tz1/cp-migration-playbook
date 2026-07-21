@@ -1,0 +1,13 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rest-ingress-dest
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`rest.k8s.schmitzi.net`)
+      services:
+        - name: kafka
+          port: 8090
