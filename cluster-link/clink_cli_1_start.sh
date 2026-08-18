@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-echo "Producing test data..."
+# echo "Producing test data..."
 
-kubectl exec kcat -it -- bash -c "cat /dev/urandom | \
-  tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 10000 | \
-  kcat -b kafka.source:9092 -t test-topic -P"
+# kubectl exec kcat -it -- bash -c "cat /dev/urandom | \
+#   tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 10000 | \
+#   kcat -b kafka.source:9092 -t test-topic -P"
 
-kubectl exec kcat -it -- bash -c "cat /dev/urandom | \
-  tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 10000 | \
-  kcat -b kafka.source:9092 -t test-topic-1 -P"
+# kubectl exec kcat -it -- bash -c "cat /dev/urandom | \
+#   tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 10000 | \
+#   kcat -b kafka.source:9092 -t test-topic-1 -P"
 
-kubectl exec kcat -it -- bash -c "echo 1234:test-record |\
-  kcat -b kafka.source:9092 -t test-topic-2 -K: -P"
+# kubectl exec kcat -it -- bash -c "echo 1234:test-record |\
+#   kcat -b kafka.source:9092 -t test-topic-2 -K: -P"
 
 echo "Setting up Cluster Link via CLI..."
 

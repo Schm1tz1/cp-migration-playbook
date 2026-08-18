@@ -29,6 +29,9 @@ spec:
   license:
     globalLicense: true
   configOverrides:
+    log4j:
+      - log4j.logger.kafka.server.link=DEBUG, stdout 
+      - log4j.additivity.kafka.server.link=false	
     server:
       - inter.broker.protocol.version=3.8
       - default.replication.factor=3
