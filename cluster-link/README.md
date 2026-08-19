@@ -208,7 +208,9 @@ acl.sync.enable=false
 ```
 * For destination-initiated CL simply create the link in the destination cluster and set both `bootstrap.servers` accordingly
 
-## Other helpful commands
+For troubleshooting and tuning see [Troubleshooting](./TROUBLESHOOTING.md).
+
+## Other useful commands
 
 * Create topic via CR:
 ```shell

@@ -9,7 +9,7 @@ spec:
   oneReplicaPerNode: true
   dataVolumeCapacity: 1G
   image:
-    application: confluentinc/cp-server:7.9.1
+    application: confluentinc/cp-server:7.9.5
     init: confluentinc/confluent-init-container:2.11.1
   configOverrides:
     server:
@@ -24,14 +24,14 @@ metadata:
 spec:
   replicas: 3
   image:
-    application: confluentinc/cp-server:7.9.1
+    application: confluentinc/cp-server:7.9.5
     init: confluentinc/confluent-init-container:2.11.1
   license:
     globalLicense: true
   configOverrides:
     log4j:
       - log4j.logger.kafka.server.link=DEBUG, stdout 
-      - log4j.additivity.kafka.server.link=false	
+      # - log4j.additivity.kafka.server.link=false	
     server:
       - inter.broker.protocol.version=3.8
       - default.replication.factor=3
@@ -64,7 +64,7 @@ spec:
   replicas: 1
   enableSchemaExporter: true
   image:
-    application: confluentinc/cp-schema-registry:7.9.1
+    application: confluentinc/cp-schema-registry:7.9.5
     init: confluentinc/confluent-init-container:2.11.1
   license:
     globalLicense: true
