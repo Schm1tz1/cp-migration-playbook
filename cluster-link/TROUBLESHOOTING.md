@@ -75,8 +75,12 @@ confluent.cluster.link.io.max.bytes.per.second=10485760
 
 ### Admin rate issues and limiting
 The amount of admin client requests during offsets sync might reach a point where the number of parallel requests cannot be served by the source brokers before timing out. This can leave your mirror topcis in `PENDING_STOPPED` during promotion and show up as `INTERNAL_ERROR` when listing state-transition errors.
-Consider batching and limiting - e.g.
+Consider larger batches - the values below have been successfully used for troubleshhoting in the past:
 ```properties
-confluent.cluster.link.admin.request.batch.size=100
+confluent.cluster.link.admin.request.batch.size=40
+confluent.cluster.link.mirror.transition.batch.size=200
+```
+Additionally, consider limiting total in-flight batch requests - e.g.
+```properties
 confluent.cluster.link.admin.max.in.flight.requests=10
 ```
