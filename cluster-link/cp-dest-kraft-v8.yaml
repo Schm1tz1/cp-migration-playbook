@@ -24,7 +24,7 @@ metadata:
 spec:
   replicas: 3
   image:
-    application: confluentinc/cp-server:7.9.1
+    application: confluentinc/cp-server:8.1.0
     init: confluentinc/confluent-init-container:3.1.0
   license:
     globalLicense: true
@@ -64,7 +64,7 @@ spec:
   replicas: 1
   enableSchemaExporter: true
   image:
-    application: confluentinc/cp-schema-registry:7.9.1
+    application: confluentinc/cp-schema-registry:8.1.0
     init: confluentinc/confluent-init-container:3.1.0
   license:
     globalLicense: true

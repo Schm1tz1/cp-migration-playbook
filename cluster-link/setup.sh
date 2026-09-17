@@ -9,7 +9,8 @@ kubectl apply -f cp-source-zk.yaml
 
 # Destination Cluster
 # kubectl apply -f cp-dest-zk.yaml
-kubectl apply -f cp-dest-kraft.yaml
+# kubectl apply -f cp-dest-kraft.yaml
+kubectl apply -f cp-dest-kraft-v8.yaml
 
 kubectl apply -f topic.yaml
 kubectl apply -f kcat.yaml

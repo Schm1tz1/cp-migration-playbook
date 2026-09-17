@@ -25,7 +25,7 @@ acl.sync.enable=false
 EOF
 
 kubectl cp ./clink.properties kafka-0:/tmp/clink.properties -n destination
-rm ./clink.properties
+# rm ./clink.properties
 
 kubectl exec kafka-0 -n destination -it --\
   kafka-cluster-links --bootstrap-server localhost:9092 --create --link manual-link \

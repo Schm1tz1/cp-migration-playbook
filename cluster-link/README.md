@@ -87,7 +87,7 @@ $ diff old.txt new.txt
 # Set up Clusters and create topics
 ./setup.sh
 
-# Start Clister Link
+# Start Cluster Link
 ./clink_cli_1_start.sh  
 
 # Check status (wait for lag=0 in all mirror topics)
@@ -196,7 +196,7 @@ kubectl delete -f topic.yaml
 ```
 
 ## Advanced Cluster Link Configuration
-* Auto-sync all topics and consumer groups:
+* Auto-sync all topics and consumer groups, add prefix:
 ```yaml
 bootstrap.servers=kafka.source.svc.cluster.local:9092
 consumer.offset.sync.enable=true
@@ -205,6 +205,7 @@ consumer.offset.group.filters={"groupFilters": [{ "name": "*", "patternType": "L
 auto.create.mirror.topics.enable=true
 auto.create.mirror.topics.filters={"topicFilters":[{"name": "*","patternType": "LITERAL","filterType": "INCLUDE"}]}
 acl.sync.enable=false
+cluster.link.prefix=mirrored-
 ```
 * For destination-initiated CL simply create the link in the destination cluster and set both `bootstrap.servers` accordingly
 
